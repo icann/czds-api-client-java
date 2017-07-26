@@ -17,8 +17,7 @@ import org.icann.czds.sdk.model.ClientAuthentication;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /*
@@ -73,17 +72,57 @@ public class UserClient {
     }
 
     /*
-     This helps you to download Zone File of particular TLD.
-     accepts name of tld and authentication token as input.
-     Throws AuthenticationException if not authorized to download that particular tld.
+     This helps you to download All Zone File for which user is approved for.
+     accepts authentication token as input.
+     Throws AuthenticationException if not authorized.
     */
-    public File downloadZoneFile(String tld, String token) throws IOException, AuthenticationException {
+    public List<File> downloadApprovedZoneFiles(String token) throws IOException, AuthenticationException {
         if (!zoneFileDownloadURL.endsWith("/")) {
             zoneFileDownloadURL = zoneFileDownloadURL + "/";
         }
 
-        String downloadURL = zoneFileDownloadURL + tld.trim() + ".zone";
+        String linksURL = zoneFileDownloadURL + "links";
+        HttpClient httpclient = HttpClients.createDefault();
+        HttpGet httpGet = new HttpGet(linksURL);
+        httpGet.addHeader("Authorization", "Bearer " + token);
+        HttpResponse response = httpclient.execute(httpGet);
 
+        if (response.getStatusLine().getStatusCode() == 401) {
+            throw new AuthenticationException("Either you are not authorized to download zone file of tld or tld does not exist");
+        }
+
+        if (response.getStatusLine().getStatusCode() == 503) {
+            throw new AuthenticationException("Service Unavailable");
+        }
+
+        Set<String> listOfDownloadURLs = getDownloadURLs(response.getEntity().getContent());
+
+        List<File> zoneFiles = new ArrayList<>();
+
+        for (String url : listOfDownloadURLs) {
+            zoneFiles.add(getZoneFile(url, token));
+        }
+
+        return zoneFiles;
+    }
+
+
+    /*
+     This helps you to download Zone File of particular TLD.
+     accepts name of tld and authentication token as input.
+     Throws AuthenticationException if not authorized to download that particular tld.
+    */
+    public File downloadZoneFile(String zone, String token) throws IOException, AuthenticationException {
+        if (!zoneFileDownloadURL.endsWith("/")) {
+            zoneFileDownloadURL = zoneFileDownloadURL + "/";
+        }
+
+        String downloadURL = zoneFileDownloadURL + zone.trim() + ".zone";
+        return getZoneFile(downloadURL, token);
+    }
+
+
+    private File getZoneFile(String downloadURL, String token) throws IOException, AuthenticationException {
         HttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(downloadURL);
         httpGet.addHeader("Authorization", "Bearer " + token);
@@ -105,9 +144,21 @@ public class UserClient {
         if (inputStream != null) {
             String result = new BufferedReader(new InputStreamReader(inputStream))
                     .lines().collect(Collectors.joining("\n"));
-            AuthResult authResult = readOutPut(result);
+            AuthResult authResult = getAuthResult(result);
             inputStream.close();
             return authResult.getAccessToken();
+        }
+
+        throw new IOException("Internal Server Error. Please try after some time");
+    }
+
+    private Set<String> getDownloadURLs(InputStream inputStream) throws IOException, AuthenticationException {
+
+        if (inputStream != null) {
+            String result = new BufferedReader(new InputStreamReader(inputStream))
+                    .lines().collect(Collectors.joining("\n"));
+            inputStream.close();
+            return getListOfURLs(result);
         }
 
         throw new IOException("Internal Server Error. Please try after some time");
@@ -137,11 +188,18 @@ public class UserClient {
         return fileName;
     }
 
-    private AuthResult readOutPut(String result) throws IOException {
+    private AuthResult getAuthResult(String result) throws IOException {
         if (result == null || result.length() == 0) {
             throw new IOException("Internal Server Error. Please try after some time");
         }
         return objectMapper.readValue(result, AuthResult.class);
+    }
+
+    private Set<String> getListOfURLs(String result) throws IOException {
+        if (result == null || result.length() == 0) {
+            return new HashSet<>();
+        }
+        return objectMapper.readValue(result, Set.class);
     }
 
     private HttpEntity buildRequestEntity(Object object) throws IOException {

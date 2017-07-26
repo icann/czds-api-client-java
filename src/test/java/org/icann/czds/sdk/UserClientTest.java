@@ -10,6 +10,8 @@ import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
+import java.util.Set;
 
 
 public class UserClientTest {
@@ -37,8 +39,9 @@ public class UserClientTest {
     @Test
     public void testDownLoadZoneFile() throws IOException, AuthenticationException {
 
-        ClientAuthentication clientAuthentication = new ClientAuthentication("jane.johnson18@example1.com", "Jo6YHwxWCeZL!");
+        ClientAuthentication clientAuthentication = new ClientAuthentication("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
         String token = userClient.authenticate(clientAuthentication);
+
 
         File file = userClient.downloadZoneFile("aaa", token);
 
@@ -61,5 +64,17 @@ public class UserClientTest {
         ClientAuthentication clientAuthentication = new ClientAuthentication("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
         String token = userClient.authenticate(clientAuthentication);
         userClient.downloadZoneFile("aaaa", token + "test");
+    }
+
+    @Test
+    public void testDownLoadAllZoneFile() throws IOException, AuthenticationException {
+
+        ClientAuthentication clientAuthentication = new ClientAuthentication("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
+        String token = userClient.authenticate(clientAuthentication);
+        List<File> files = userClient.downloadApprovedZoneFiles(token);
+
+        Assert.assertEquals(files.size(), 1);
+
+
     }
 }
