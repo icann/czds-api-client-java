@@ -12,7 +12,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
 import org.icann.czds.sdk.model.AuthResult;
 import org.icann.czds.sdk.model.AuthenticationException;
-import org.icann.czds.sdk.model.ClientAuthentication;
+import org.icann.czds.sdk.model.ClientConfiguration;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -30,38 +30,35 @@ public class UserClient {
 
     private static final String TEMP_DIRECTORY_NAME = "temp";
 
-
-    private String authenticationURL;
-    private String zoneFileDownloadURL;
+    private ClientConfiguration clientConfiguration;
 
     /*
     Instantiate UserClient by providing Global Account URL and CZDS download URL
     */
-    public UserClient(String authenticationURL, String zoneFileDownloadURL) {
+    public UserClient(ClientConfiguration clientConfiguration) {
         this.objectMapper = new ObjectMapper();
-        this.authenticationURL = authenticationURL.trim();
-        this.zoneFileDownloadURL = zoneFileDownloadURL.trim();
+        this.clientConfiguration = clientConfiguration;
     }
 
     /*
      This helps you to authenticate with global account and provide you a token which can be used to download ZONE file.
-     accepts ClientAuthentication object and returns a token string if authentication is successful.
+     returns a token string if authentication is successful.
      Throws AuthenticationException if authentication failed.
     */
-    public String authenticate(ClientAuthentication clientAuthentication) throws AuthenticationException, IOException {
+    public String authenticate() throws AuthenticationException, IOException {
         HttpClient httpclient = HttpClients.createDefault();
-        HttpPost httppost = new HttpPost(authenticationURL);
+        HttpPost httppost = new HttpPost(clientConfiguration.getGlobalAccountURL());
 
         Map<String, String> params = new HashMap<>();
-        params.put("username", clientAuthentication.getUserName());
-        params.put("password", clientAuthentication.getPassword());
+        params.put("username", clientConfiguration.getUserName());
+        params.put("password", clientConfiguration.getPassword());
 
         httppost.setEntity(buildRequestEntity(params));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
 
         if (response.getStatusLine().getStatusCode() == 401) {
-            throw new AuthenticationException(String.format("Invalid username or password for user %s", clientAuthentication.getUserName()));
+            throw new AuthenticationException(String.format("Invalid username or password for user %s", clientConfiguration.getUserName()));
         }
         if (response.getStatusLine().getStatusCode() == 500) {
             throw new AuthenticationException("Internal Server Exception. Please try again later");
@@ -77,11 +74,13 @@ public class UserClient {
      Throws AuthenticationException if not authorized.
     */
     public List<File> downloadApprovedZoneFiles(String token) throws IOException, AuthenticationException {
-        if (!zoneFileDownloadURL.endsWith("/")) {
-            zoneFileDownloadURL = zoneFileDownloadURL + "/";
+
+        String czdsDownloadURL = clientConfiguration.getCzdsDownloadURL();
+        if (!czdsDownloadURL.endsWith("/")) {
+            czdsDownloadURL = czdsDownloadURL + "/";
         }
 
-        String linksURL = zoneFileDownloadURL + "links";
+        String linksURL = czdsDownloadURL + "links";
         HttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(linksURL);
         httpGet.addHeader("Authorization", "Bearer " + token);
@@ -113,11 +112,11 @@ public class UserClient {
      Throws AuthenticationException if not authorized to download that particular tld.
     */
     public File downloadZoneFile(String zone, String token) throws IOException, AuthenticationException {
-        if (!zoneFileDownloadURL.endsWith("/")) {
-            zoneFileDownloadURL = zoneFileDownloadURL + "/";
+        String czdsDownloadURL = clientConfiguration.getCzdsDownloadURL();
+        if (!czdsDownloadURL.endsWith("/")) {
+            czdsDownloadURL = czdsDownloadURL + "/";
         }
-
-        String downloadURL = zoneFileDownloadURL + zone.trim() + ".zone";
+        String downloadURL = czdsDownloadURL + zone.trim() + ".zone";
         return getZoneFile(downloadURL, token);
     }
 
