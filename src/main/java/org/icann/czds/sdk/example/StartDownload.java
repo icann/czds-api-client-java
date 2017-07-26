@@ -25,7 +25,7 @@ public class StartDownload {
             try {
                 inputStream = new FileInputStream(args[0]);
             } catch (FileNotFoundException e) {
-                System.out.println("Properties File not provided as input. Trying to load from application.properties");
+                System.out.println("File Not found at given path.");
             }
         } else if (args.length == 0) {
             inputStream = StartDownload.class.getClassLoader().getResourceAsStream("application.properties");
@@ -39,7 +39,6 @@ public class StartDownload {
             System.out.println("Please provide either input file or add application.properties in resources");
             System.exit(1);
         }
-
 
         StartDownload startDownload = new StartDownload();
         ClientConfiguration clientConfiguration = null;
