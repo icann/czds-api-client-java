@@ -5,7 +5,6 @@ import java.io.IOException;
 
 public class ClientConfiguration {
 
-
     private String userName;
     private String password;
     private String globalAccountURL;
@@ -19,7 +18,15 @@ public class ClientConfiguration {
         this.userName = userName.trim();
         this.password = password.trim();
         this.globalAccountURL = globalAccountURL.trim();
-        this.czdsDownloadURL = czdsDownloadURL.trim();
+        this.czdsDownloadURL = formatURL(czdsDownloadURL.trim());
+    }
+
+    private String formatURL(String url) {
+        if (!url.endsWith("/")) {
+            url = url + "/";
+        }
+
+        return url;
     }
 
     private void checkNullValue(String value) throws IOException {

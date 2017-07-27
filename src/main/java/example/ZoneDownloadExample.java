@@ -1,49 +1,34 @@
-package org.icann.czds.sdk.example;
+package example;
 
 
 import org.icann.czds.sdk.client.UserClient;
 import org.icann.czds.sdk.model.AuthenticationException;
 import org.icann.czds.sdk.model.ClientConfiguration;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.util.List;
 import java.util.Properties;
+
 /*
-This application can be started by providing properties file as input (Refer resources/application.properties for required fields.
-If no property file is provided, this application will try to load resources/application.properties(make sure all values are provided)
+This application will try to load resources/application.properties(make sure all values are provided)
 Once properties are loaded, client will authenticate with global account and download all zone files for which the user is approved for.
 
 If using this client as part of your code, you can ignore this class. Please Refer UserClient.java for detailed usage.)
 */
-public class StartDownload {
+public class ZoneDownloadExample {
 
     public static void main(String[] args) {
-        InputStream inputStream = null;
-        if (args.length == 1) {
-            try {
-                inputStream = new FileInputStream(args[0]);
-            } catch (FileNotFoundException e) {
-                System.out.println("File Not found at given path.");
-            }
-        } else if (args.length == 0) {
-            inputStream = StartDownload.class.getClassLoader().getResourceAsStream("application.properties");
-            System.out.println("loaded file from resources");
+        new ZoneDownloadExample().run(args);
 
-        } else {
-            System.out.println("Usage: Either 0 or 1 argument is allowed. The argument can be a properties file");
-            System.exit(1);
-        }
-        if (inputStream == null) {
-            System.out.println("Please provide either input file or add application.properties in resources");
-            System.exit(1);
-        }
+    }
 
-        StartDownload startDownload = new StartDownload();
+    public void run(String[] args) {
+
+        InputStream inputStream = ZoneDownloadExample.class.getClassLoader().getResourceAsStream("application.properties");
+
         ClientConfiguration clientConfiguration = null;
         try {
-            clientConfiguration = startDownload.loadApplicationProperties(inputStream);
+            clientConfiguration = loadApplicationProperties(inputStream);
         } catch (IOException e) {
             System.out.println("Either one or more properties missing. Required properties:\n" +
                     "global.account.url\n" +
@@ -53,18 +38,21 @@ public class StartDownload {
             System.exit(1);
         }
 
-        System.out.println("starting download");
 
         UserClient userClient = new UserClient(clientConfiguration);
         try {
-            String token = userClient.authenticate();
-            userClient.downloadApprovedZoneFiles(token);
+            System.out.println("starting download");
+            List<File> fileList = userClient.downloadApprovedZoneFiles(); //to download all approved zone files
+            fileList.forEach(file -> System.out.println(file.getAbsolutePath()));
+
+            File file = userClient.downloadZoneFile("aaa"); //to download particular zone file
+            System.out.println(file.getAbsolutePath());
         } catch (AuthenticationException | IOException e) {
             System.out.println(e.getMessage());
+            System.exit(1);
         }
 
         System.out.println("Completed download. Please check /temp directory for all zone files");
-
     }
 
     private ClientConfiguration loadApplicationProperties(InputStream inputStream) throws IOException {

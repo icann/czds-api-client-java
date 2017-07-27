@@ -17,26 +17,12 @@ public class UserClientTest {
 
     private UserClient userClient;
 
-    @Test(expectedExceptions = AuthenticationException.class)
-    public void testAuthenticate() throws IOException, AuthenticationException {
-        ClientConfiguration clientConfiguration = buildClientConfiguration("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
-        userClient = new UserClient(clientConfiguration);
-        String token = userClient.authenticate();
-
-        Assert.assertTrue(token.length() > 0);
-
-        clientConfiguration = buildClientConfiguration("jane.johnson18@example.com", "wrongPWD!");
-        userClient = new UserClient(clientConfiguration);
-        userClient.authenticate();
-    }
-
     @Test
     public void testDownLoadZoneFile() throws IOException, AuthenticationException {
         ClientConfiguration clientConfiguration = buildClientConfiguration("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
         userClient = new UserClient(clientConfiguration);
-        String token = userClient.authenticate();
 
-        File file = userClient.downloadZoneFile("aaa", token);
+        File file = userClient.downloadZoneFile("aaa");
 
         Assert.assertTrue(file.getName().equals("aaa.zone"));
 
@@ -44,11 +30,13 @@ public class UserClientTest {
     }
 
     @Test(expectedExceptions = AuthenticationException.class)
-    public void testDownLoadZoneFileWrongToken() throws IOException, AuthenticationException {
-        ClientConfiguration clientConfiguration = buildClientConfiguration("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
+    public void testDownLoadZoneFileWrongCredentials() throws IOException, AuthenticationException {
+        ClientConfiguration clientConfiguration = buildClientConfiguration("wrong@example.com", "Jo6YHwxWCeZL!");
         userClient = new UserClient(clientConfiguration);
-        String token = userClient.authenticate();
-        userClient.downloadZoneFile("aaa", token + "test");
+
+        File file = userClient.downloadZoneFile("aaa");
+
+
 
     }
 
@@ -56,8 +44,7 @@ public class UserClientTest {
     public void testDownLoadZoneFileWrongZone() throws IOException, AuthenticationException {
         ClientConfiguration clientConfiguration = buildClientConfiguration("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
         userClient = new UserClient(clientConfiguration);
-        String token = userClient.authenticate();
-        userClient.downloadZoneFile("aaaa", token);
+        userClient.downloadZoneFile("aaaa");
     }
 
     @Test
@@ -65,9 +52,7 @@ public class UserClientTest {
 
         ClientConfiguration clientConfiguration = buildClientConfiguration("jane.johnson18@example.com", "Jo6YHwxWCeZL!");
         userClient = new UserClient(clientConfiguration);
-        String token = userClient.authenticate();
-
-        List<File> files = userClient.downloadApprovedZoneFiles(token);
+        List<File> files = userClient.downloadApprovedZoneFiles();
 
         Assert.assertEquals(files.size(), 1);
 
