@@ -13,26 +13,21 @@ public class ClientConfiguration {
     private static String czdsDownloadURL;
     private static String fileStoreageLocation;
 
-    static {
+    public static ClientConfiguration createClientConfiguration(InputStream inputStream) throws IOException {
         Properties properties = new Properties();
-        InputStream inputStream = ClientConfiguration.class.getClassLoader().getResourceAsStream("application.properties");
-        try {
-            properties.load(inputStream);
-            userName = properties.getProperty("global.account.username");
-            password = properties.getProperty("global.account.password");
-            globalAccountURL = properties.getProperty("global.account.url");
-            czdsDownloadURL = properties.getProperty("czds.download.url");
-            fileStoreageLocation = properties.getProperty("file.storage.location");
-            if (fileStoreageLocation == null || fileStoreageLocation.trim().length() == 0) {
-                fileStoreageLocation = "temp";
-            }
-        } catch (IOException e) {
-            System.out.println("Unable to load properties file");
+        properties.load(inputStream);
+        userName = properties.getProperty("global.account.username");
+        password = properties.getProperty("global.account.password");
+        globalAccountURL = properties.getProperty("global.account.url");
+        czdsDownloadURL = properties.getProperty("czds.download.url");
+        fileStoreageLocation = properties.getProperty("file.storage.location");
+        if (fileStoreageLocation == null || fileStoreageLocation.trim().length() == 0) {
+            fileStoreageLocation = "temp";
         }
+
+        return new ClientConfiguration(userName, password, globalAccountURL, czdsDownloadURL, fileStoreageLocation);
     }
 
-    public ClientConfiguration() {
-    }
 
     /*If initiated using this constructor, location of file download is automatically set to temp*/
     public ClientConfiguration(String userName, String password, String globalAccountURL, String czdsDownloadURL) throws IOException {

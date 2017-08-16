@@ -31,9 +31,12 @@ public class ZoneDownloadExample {
             System.out.println(e.getMessage());
             System.exit(1);
         }
-
+//        try {
+//            UserClient userClient = new UserClient(ClientConfiguration.createClientConfiguration(ZoneDownloadExample.class.getClassLoader().getResourceAsStream("application.properties")));
+//        } catch (IOException e) {
+//            System.out.println(e.getMessage());
+//        }
         UserClient userClient = new UserClient(clientConfiguration);
-
         System.out.println("starting download");
         List<File> fileList = userClient.downloadApprovedZoneFiles(); //example to download all approved zone files
         if (!fileList.isEmpty()) {
@@ -44,6 +47,7 @@ public class ZoneDownloadExample {
         if (file != null) {
             System.out.println(file.getAbsolutePath());
         }
+
     }
 
 
