@@ -18,18 +18,16 @@ public class ClientConfiguration {
         InputStream inputStream = ClientConfiguration.class.getClassLoader().getResourceAsStream("application.properties");
         try {
             properties.load(inputStream);
+            userName = properties.getProperty("global.account.username");
+            password = properties.getProperty("global.account.password");
+            globalAccountURL = properties.getProperty("global.account.url");
+            czdsDownloadURL = properties.getProperty("czds.download.url");
+            fileStoreageLocation = properties.getProperty("file.storage.location");
+            if (fileStoreageLocation == null || fileStoreageLocation.trim().length() == 0) {
+                fileStoreageLocation = "temp";
+            }
         } catch (IOException e) {
-            e.printStackTrace();
-        }
-        userName = properties.getProperty("global.account.username");
-        password = properties.getProperty("global.account.password");
-        globalAccountURL = properties.getProperty("global.account.url");
-        czdsDownloadURL = properties.getProperty("czds.download.url");
-        fileStoreageLocation = properties.getProperty("file.storage.location");
-        try {
-            checkNullValue(fileStoreageLocation);
-        } catch (IOException e) {
-            fileStoreageLocation = "temp";
+            System.out.println("Unable to load properties file");
         }
     }
 
