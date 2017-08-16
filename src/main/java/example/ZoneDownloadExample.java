@@ -10,9 +10,6 @@ import java.util.List;
 import java.util.Properties;
 
 /*
-This application will try to load resources/application.properties(make sure all values are provided)
-Once properties are loaded, client will authenticate with global account and download all zone files for which the user is approved for.
-
 If using this client as part of your code, you can ignore this class. Please Refer UserClient.java for detailed usage.)
 */
 public class ZoneDownloadExample {
@@ -23,49 +20,31 @@ public class ZoneDownloadExample {
     }
 
     public void run(String[] args) {
-
-        InputStream inputStream = ZoneDownloadExample.class.getClassLoader().getResourceAsStream("application.properties");
-
         ClientConfiguration clientConfiguration = null;
         try {
-            clientConfiguration = loadApplicationProperties(inputStream);
+            clientConfiguration = new ClientConfiguration("test5@performance.test",
+                    "8D!#MdoX2h-y",
+                    "http://localhost:8088/api/authenticate",
+                    "http://localhost:8081/czds/downloads",
+                    "/Users/krishna.raghavendra/Desktop/Projects/czds-client/temp/temp");
         } catch (IOException e) {
-            System.out.println("Either one or more properties missing. Required properties:\n" +
-                    "global.account.url\n" +
-                    "czds.download.url\n" +
-                    "global.account.username\n" +
-                    "global.account.password");
-            System.exit(1);
-        }
-
-
-        UserClient userClient = new UserClient(clientConfiguration);
-        try {
-            System.out.println("starting download");
-            List<File> fileList = userClient.downloadApprovedZoneFiles(); //to download all approved zone files
-            fileList.forEach(file -> System.out.println(file.getAbsolutePath()));
-
-            File file = userClient.downloadZoneFile("aaa"); //to download particular zone file
-            System.out.println(file.getAbsolutePath());
-        } catch (AuthenticationException | IOException e) {
             System.out.println(e.getMessage());
             System.exit(1);
         }
 
-        System.out.println("Completed download. Please check /temp directory for all zone files");
-    }
+        UserClient userClient = new UserClient(clientConfiguration);
 
-    private ClientConfiguration loadApplicationProperties(InputStream inputStream) throws IOException {
-        Properties prop = new Properties();
-        try {
-            prop.load(inputStream);
-            return new ClientConfiguration(prop.getProperty("global.account.username"),
-                    prop.getProperty("global.account.password"),
-                    prop.getProperty("global.account.url"),
-                    prop.getProperty("czds.download.url"));
-        } catch (IOException e) {
-            throw new IOException();
+        System.out.println("starting download");
+        List<File> fileList = userClient.downloadApprovedZoneFiles(); //example to download all approved zone files
+        if (!fileList.isEmpty()) {
+            fileList.forEach(file -> System.out.println(file.getAbsolutePath()));
         }
 
+        File file = userClient.downloadZoneFile("juniper.zone"); // example to download particular zone file
+        if (file != null) {
+            System.out.println(file.getAbsolutePath());
+        }
     }
+
+
 }
