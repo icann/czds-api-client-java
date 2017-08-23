@@ -21,8 +21,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 /*
-UserClient helps you to authenticate with global account, which provides you with a token.
-    This token can be used to download zone files of TLD for which you are authorized for.
+UserClient helps you to download all zone file for which a user is approved for or a particular zone file.
 */
 public class UserClient {
 
@@ -42,37 +41,45 @@ public class UserClient {
 
     /*
      This helps you to download All Zone File for which user is approved for.
-     accepts authentication token as input.
      Throws AuthenticationException if not authorized.
     */
-    public List<File> downloadApprovedZoneFiles() throws IOException, AuthenticationException {
-
-        authenticate();
-
-        String linksURL = clientConfiguration.getCzdsDownloadURL() + ApplicationConstants.CZDS_LINKS;
-
-        HttpResponse response = makeGetRequest(linksURL);
-
-        Set<String> listOfDownloadURLs = getDownloadURLs(response);
-
+    public List<File> downloadApprovedZoneFiles() {
         List<File> zoneFiles = new ArrayList<>();
+        try {
+            authenticateIfRequired();
 
-        for (String url : listOfDownloadURLs) {
-            zoneFiles.add(getZoneFile(url));
+
+            String linksURL = clientConfiguration.getCzdsDownloadURL() + ApplicationConstants.CZDS_LINKS;
+
+            HttpResponse response = makeGetRequest(linksURL);
+
+            Set<String> listOfDownloadURLs = getDownloadURLs(response);
+
+            for (String url : listOfDownloadURLs) {
+                zoneFiles.add(getZoneFile(url));
+            }
+
+            return zoneFiles;
+        } catch (AuthenticationException | IOException e) {
+            System.out.println("Error in downloading files " + e.getMessage());
         }
-
         return zoneFiles;
     }
 
     /*
      This helps you to download Zone File of particular TLD.
-     accepts name of tld and authentication token as input.
+     accepts name of tld as input.
      Throws AuthenticationException if not authorized to download that particular tld.
     */
-    public File downloadZoneFile(String zone) throws IOException, AuthenticationException {
-        authenticate();
-        String downloadURL = clientConfiguration.getCzdsDownloadURL() + zone.trim() + ApplicationConstants.CZDS_ZONE;
-        return getZoneFile(downloadURL);
+    public File downloadZoneFile(String zone) {
+        try {
+            authenticateIfRequired();
+            String downloadURL = clientConfiguration.getCzdsDownloadURL() + zone.trim() + ApplicationConstants.CZDS_ZONE;
+            return getZoneFile(downloadURL);
+        } catch (AuthenticationException | IOException e) {
+            System.out.println("Error in downloading file " + e.getMessage());
+        }
+        return null;
     }
 
 
@@ -85,8 +92,12 @@ public class UserClient {
         HttpClient httpclient = HttpClients.createDefault();
         HttpGet httpGet = new HttpGet(url);
         httpGet.addHeader("Authorization", "Bearer " + this.token);
-        httpGet.addHeader("Content-Encoding", "gzip");
+        httpGet.addHeader("Accept-Encoding", "gzip");
         HttpResponse response = httpclient.execute(httpGet);
+
+        if (response.getStatusLine().getStatusCode() == 404) {
+            throw new IOException(String.format("Please check url %s", url));
+        }
 
         if (response.getStatusLine().getStatusCode() == 401) {
             throw new AuthenticationException("Either you are not authorized to download zone file of tld or tld does not exist");
@@ -99,12 +110,7 @@ public class UserClient {
         return response;
     }
 
-    /*
-     This helps you to authenticate with global account and provide you a token which can be used to download ZONE file.
-     returns a token string if authentication is successful.
-     Throws AuthenticationException if authentication failed.
-    */
-    private void authenticate() throws AuthenticationException, IOException {
+    private void authenticateIfRequired() throws AuthenticationException, IOException {
 
         if (token != null) {
             return;
@@ -120,6 +126,10 @@ public class UserClient {
         httppost.setEntity(buildRequestEntity(params));
         HttpResponse response = httpclient.execute(httppost);
         HttpEntity entity = response.getEntity();
+
+        if (response.getStatusLine().getStatusCode() == 404) {
+            throw new IOException(String.format("Please check url %s", clientConfiguration.getGlobalAccountURL()));
+        }
 
         if (response.getStatusLine().getStatusCode() == 401) {
             throw new AuthenticationException(String.format("Invalid username or password for user %s", clientConfiguration.getUserName()));
@@ -146,12 +156,12 @@ public class UserClient {
     }
 
     private File createFileLocally(InputStream inputStream, String fileName) throws IOException {
-        File tempDirectory = new File(ApplicationConstants.TEMP_DIR_NAME);
+        File tempDirectory = new File(clientConfiguration.getFileStoreageLocation());
         if (!tempDirectory.exists()) {
             tempDirectory.mkdir();
         }
 
-        File file = new File(ApplicationConstants.TEMP_DIR_NAME + "/" + fileName);
+        File file = new File(clientConfiguration.getFileStoreageLocation(), fileName);
 
         Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
