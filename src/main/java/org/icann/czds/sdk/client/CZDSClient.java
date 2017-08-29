@@ -31,8 +31,6 @@ public class CZDSClient {
 
     private String token;
 
-    private int count;
-
     /*
     Instantiate CZDSClient by providing ClientConfiguration
     */
@@ -87,7 +85,6 @@ public class CZDSClient {
 
 
     private File getZoneFile(String downloadURL) throws IOException, AuthenticationException {
-        count = 0;
         HttpResponse response = makeGetRequest(downloadURL);
         return createFileLocally(response.getEntity().getContent(), getFileName(response));
     }
@@ -108,11 +105,7 @@ public class CZDSClient {
         }
 
         if (response.getStatusLine().getStatusCode() == 401) {
-            if (count >= 2) {
-                throw new AuthenticationException(String.format("Invalid username or password for user %s", clientConfiguration.getUserName()));
-            }
             this.token = null;
-            count++;
             authenticateIfRequired();
             response = makeGetRequest(url);
         }
