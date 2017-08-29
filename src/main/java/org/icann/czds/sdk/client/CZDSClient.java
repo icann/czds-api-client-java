@@ -21,9 +21,9 @@ import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 /*
-UserClient helps you to download all zone file for which a user is approved for or a particular zone file.
+CZDSClient helps you to download all zone file for which a user is approved for or a particular zone file.
 */
-public class UserClient {
+public class CZDSClient {
 
     protected ObjectMapper objectMapper;
 
@@ -32,11 +32,12 @@ public class UserClient {
     private String token;
 
     /*
-    Instantiate UserClient by providing ClientConfiguration
+    Instantiate CZDSClient by providing ClientConfiguration
     */
-    public UserClient(ClientConfiguration clientConfiguration) {
+    public CZDSClient(ClientConfiguration clientConfiguration) {
         this.objectMapper = new ObjectMapper();
         this.clientConfiguration = clientConfiguration;
+
     }
 
     /*
@@ -99,8 +100,14 @@ public class UserClient {
             throw new IOException(String.format("Please check url %s", url));
         }
 
+        if(response.getStatusLine().getStatusCode() == 403){
+            throw new AuthenticationException(String.format("%s is not authorized to download  %s", clientConfiguration.getUserName(), url));
+        }
+
         if (response.getStatusLine().getStatusCode() == 401) {
-            throw new AuthenticationException("Either you are not authorized to download zone file of tld or tld does not exist");
+            this.token = null;
+            authenticateIfRequired();
+            response = makeGetRequest(url);
         }
 
         if (response.getStatusLine().getStatusCode() == 503) {
