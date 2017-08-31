@@ -110,6 +110,17 @@ public class CZDSClient {
             response = makeGetRequest(url);
         }
 
+        if(response.getStatusLine().getStatusCode() == 428){
+
+            String reason = response.getStatusLine().getReasonPhrase();
+
+            if(reason.isEmpty()){
+                reason = "You need to first login to CZDS web interface and accept new Terms & Conditions";
+            }
+
+            throw new AuthenticationException(reason);
+        }
+
         if (response.getStatusLine().getStatusCode() == 503) {
             throw new AuthenticationException("Service Unavailable");
         }
