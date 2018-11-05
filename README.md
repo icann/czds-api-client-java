@@ -15,11 +15,11 @@ You can provide default configurations in `application.properties` file.
 ```
 # REST endpoint for authentication
 # Can be overwritten via command line option -a
-authentication.base.url=https://accounts-api-qa.icann.org
+authentication.base.url=https://czds-api-test.icann.org
    
 # REST endpoint for downloading zone files
 # Can be overwritten via command line option -c
-czds.base.url=https://czds2-api-qa.icann.org
+czds.base.url=https://account-api-test.icann.org
   
 # Account credential.
 # Optional. Can be overwritten via commandline option -u and -p
@@ -51,18 +51,21 @@ usage: ZoneFileDownloader [-a <arg>] [-c <arg>] [-h] [-o <arg>] [-p <arg>] [-t <
 ```
 
 # Build
+```
+mvn clean install
+```
 
-Run **`mvn clean install`**
+It produces an executable jar `./target/zonefile-downloader.jar`
 
 # Run
 
-* To download all of your APPROVED zone files assume that you have all the required configurations in application.properties
+* To download all of your APPROVED zone files assume that you have set all the required configurations in application.properties
     - run 
     ```
     java -jar ./target/zonefile-downloader.jar
     ```
 
-* To download zone files for one or more TLDs (for example, abb, booking), assume that you have all the required configurations in application.properties
+* To download zone files for one or more TLDs (for example, abb, booking), assume that you have set all the required configurations in application.properties
     - run 
     ```
     java -jar ./target/zonefile-downloader.jar -t abb,booking
@@ -76,6 +79,6 @@ Run **`mvn clean install`**
        -a https://accounts-api-qa.icann.org \
        -c https://czds2-api-qa.icann.org \
        -t booking \
-       -o ./ \
+       -o /where/you/want/to/save/zonefiles \
        -u username@example.com \
        -p 1234567#Abcdefg```
