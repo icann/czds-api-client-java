@@ -73,12 +73,12 @@ It produces an executable jar `./target/zonefile-downloader.jar`
 
 * To pass in all commandline options, 
     - run
-    
-    ```
+```
        java -jar ./target/zonefile-downloader.jar \
        -a https://accounts-api-qa.icann.org \
        -c https://czds2-api-qa.icann.org \
        -t booking \
        -o /where/you/want/to/save/zonefiles \
        -u username@example.com \
-       -p 1234567#Abcdefg```
+       -p 1234567#Abcdefg
+ ``` 
