@@ -96,11 +96,11 @@ public class CZDSClient {
         HttpResponse response = httpclient.execute(httpGet);
 
         if (response.getStatusLine().getStatusCode() == 404) {
-            throw new IOException(String.format("Please check url %s", url));
+            throw new IOException(String.format("ERROR: Please check url %s", url));
         }
 
         if(response.getStatusLine().getStatusCode() == 403){
-            throw new AuthenticationException(String.format("%s is not authorized to download  %s", clientConfiguration.getUserName(), url));
+            throw new AuthenticationException(String.format("ERROR: %s is not authorized to download  %s", clientConfiguration.getUserName(), url));
         }
 
         if (response.getStatusLine().getStatusCode() == 401) {
@@ -114,14 +114,14 @@ public class CZDSClient {
             String reason = response.getStatusLine().getReasonPhrase();
 
             if(reason.isEmpty()){
-                reason = "You need to first login to CZDS web interface and accept new Terms & Conditions";
+                reason = "ERROR: You need to first login to CZDS web interface and accept new Terms & Conditions";
             }
 
             throw new AuthenticationException(reason);
         }
 
         if (response.getStatusLine().getStatusCode() == 503) {
-            throw new AuthenticationException("Service Unavailable");
+            throw new AuthenticationException("ERROR: Service Unavailable");
         }
 
         return response;
@@ -145,14 +145,14 @@ public class CZDSClient {
         HttpEntity entity = response.getEntity();
 
         if (response.getStatusLine().getStatusCode() == 404) {
-            throw new IOException(String.format("Please check url %s", clientConfiguration.getAuthenticationUrl()));
+            throw new IOException(String.format("ERROR: Please check url %s", clientConfiguration.getAuthenticationUrl()));
         }
 
         if (response.getStatusLine().getStatusCode() == 401) {
-            throw new AuthenticationException(String.format("Invalid username or password for user %s. Please reset your password via Web", clientConfiguration.getUserName()));
+            throw new AuthenticationException(String.format("ERROR: Invalid username or password for user %s. Please reset your password via Web", clientConfiguration.getUserName()));
         }
         if (response.getStatusLine().getStatusCode() == 500) {
-            throw new AuthenticationException("Internal Server Exception. Please try again later");
+            throw new AuthenticationException("ERROR: Internal Server Exception. Please try again later");
         }
 
         this.token = getAuthToken(entity.getContent());
@@ -186,7 +186,7 @@ public class CZDSClient {
             inputStream.close();
             return file;
         } catch (IOException e) {
-            throw new IOException("Failed to save file " + file.getAbsolutePath(), e);
+            throw new IOException("ERROR: Failed to save file " + file.getAbsolutePath(), e);
         }
     }
 
@@ -194,7 +194,7 @@ public class CZDSClient {
         Header[] headers = response.getHeaders("Content-disposition");
         String preFileName = "attachment;filename=";
         if (headers.length == 0) {
-            throw new AuthenticationException("Either you are not authorized to download zone file of tld or tld does not exist");
+            throw new AuthenticationException("ERROR: Either you are not authorized to download zone file of tld or tld does not exist");
         }
         String fileName = headers[0].getValue().substring(headers[0].getValue().indexOf(preFileName) + preFileName.length());
         return fileName;
