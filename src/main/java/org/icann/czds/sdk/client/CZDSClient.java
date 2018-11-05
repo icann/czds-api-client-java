@@ -44,13 +44,13 @@ public class CZDSClient {
      This helps you to download All Zone File for which user is approved for.
      Throws AuthenticationException if not authorized.
     */
-    public List<File> downloadApprovedZoneFiles() {
+    public List<File> downloadApprovedZoneFiles() throws AuthenticationException, IOException{
         List<File> zoneFiles = new ArrayList<>();
         try {
             authenticateIfRequired();
 
 
-            String linksURL = clientConfiguration.getCzdsDownloadURL() + ApplicationConstants.CZDS_LINKS;
+            String linksURL = clientConfiguration.getCzdsDownloadUrl() + ApplicationConstants.CZDS_LINKS;
 
             HttpResponse response = makeGetRequest(linksURL);
 
@@ -62,9 +62,8 @@ public class CZDSClient {
 
             return zoneFiles;
         } catch (AuthenticationException | IOException e) {
-            System.out.println("Error in downloading files " + e.getMessage());
+            throw e;
         }
-        return zoneFiles;
     }
 
     /*
@@ -72,19 +71,19 @@ public class CZDSClient {
      accepts name of tld as input.
      Throws AuthenticationException if not authorized to download that particular tld.
     */
-    public File downloadZoneFile(String zone) {
+    public File downloadZoneFile(String zone) throws  AuthenticationException, IOException{
         try {
             authenticateIfRequired();
-            String downloadURL = clientConfiguration.getCzdsDownloadURL() + zone.trim() + ApplicationConstants.CZDS_ZONE;
+            String downloadURL = clientConfiguration.getCzdsDownloadUrl() + zone.trim() + ApplicationConstants.CZDS_ZONE;
             return getZoneFile(downloadURL);
         } catch (AuthenticationException | IOException e) {
-            System.out.println("Error in downloading file " + e.getMessage());
+            throw e;
         }
-        return null;
     }
 
 
     private File getZoneFile(String downloadURL) throws IOException, AuthenticationException {
+        System.out.println("Downloading zone file from " + downloadURL);
         HttpResponse response = makeGetRequest(downloadURL);
         return createFileLocally(response.getEntity().getContent(), getFileName(response));
     }
@@ -135,7 +134,7 @@ public class CZDSClient {
         }
 
         HttpClient httpclient = HttpClients.createDefault();
-        HttpPost httppost = new HttpPost(clientConfiguration.getGlobalAccountURL());
+        HttpPost httppost = new HttpPost(clientConfiguration.getAuthenticationUrl());
 
         Map<String, String> params = new HashMap<>();
         params.put("username", clientConfiguration.getUserName());
@@ -146,11 +145,11 @@ public class CZDSClient {
         HttpEntity entity = response.getEntity();
 
         if (response.getStatusLine().getStatusCode() == 404) {
-            throw new IOException(String.format("Please check url %s", clientConfiguration.getGlobalAccountURL()));
+            throw new IOException(String.format("Please check url %s", clientConfiguration.getAuthenticationUrl()));
         }
 
         if (response.getStatusLine().getStatusCode() == 401) {
-            throw new AuthenticationException(String.format("Invalid username or password for user %s", clientConfiguration.getUserName()));
+            throw new AuthenticationException(String.format("Invalid username or password for user %s. Please reset your password via Web", clientConfiguration.getUserName()));
         }
         if (response.getStatusLine().getStatusCode() == 500) {
             throw new AuthenticationException("Internal Server Exception. Please try again later");
@@ -174,17 +173,21 @@ public class CZDSClient {
     }
 
     private File createFileLocally(InputStream inputStream, String fileName) throws IOException {
-        File tempDirectory = new File(clientConfiguration.getFileStoreageLocation());
+        System.out.println("Saving zone file " + fileName);
+        File tempDirectory = new File(clientConfiguration.getZonefileOutputDirectory());
         if (!tempDirectory.exists()) {
             tempDirectory.mkdir();
         }
 
-        File file = new File(clientConfiguration.getFileStoreageLocation(), fileName);
+        File file = new File(clientConfiguration.getZonefileOutputDirectory(), fileName);
+        try {
+            Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
-
-        inputStream.close();
-        return file;
+            inputStream.close();
+            return file;
+        } catch (IOException e) {
+            throw new IOException("Failed to save file " + file.getAbsolutePath(), e);
+        }
     }
 
     private String getFileName(HttpResponse response) throws AuthenticationException {

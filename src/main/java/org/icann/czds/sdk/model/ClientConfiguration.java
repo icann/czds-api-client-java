@@ -1,5 +1,6 @@
 package org.icann.czds.sdk.model;
 
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -7,81 +8,109 @@ import java.util.Properties;
 
 public class ClientConfiguration {
 
-    private static String userName;
-    private static String password;
-    private static String globalAccountURL;
-    private static String czdsDownloadURL;
-    private static String fileStoreageLocation;
+    private static ClientConfiguration configuration = null;
 
-    public static ClientConfiguration createClientConfiguration(InputStream inputStream) throws IOException {
+    private static String username;
+    private static String password;
+    private static String authenticationUrl;
+    private static String czdsDownloadUrl;
+    private static String zonefileOutputDirectory;
+
+
+    public static ClientConfiguration getInstance() throws IOException{
+        if(configuration == null) {
+            loadDefaultClientConfiguration();
+        }
+
+        return configuration;
+    }
+
+    /**
+     * Loads the default configuration from application.properties file.
+     */
+    private static ClientConfiguration loadDefaultClientConfiguration() throws IOException {
+        InputStream inputStream = ClientConfiguration.class.getClassLoader().getResourceAsStream("application.properties");
         Properties properties = new Properties();
         properties.load(inputStream);
-        userName = properties.getProperty("global.account.username");
-        password = properties.getProperty("global.account.password");
-        globalAccountURL = properties.getProperty("global.account.url");
-        czdsDownloadURL = properties.getProperty("czds.download.url");
-        fileStoreageLocation = properties.getProperty("file.storage.location");
-        if (fileStoreageLocation == null || fileStoreageLocation.trim().length() == 0) {
-            fileStoreageLocation = "temp";
+
+        String userName = properties.getProperty("icann.account.username");
+        String password = properties.getProperty("icann.account.password");
+
+        // Must specify authentication.base.url and czds.base.url
+        String authenBaseUrl = properties.getProperty("authentication.base.url");
+        String czdsBaseUrl = properties.getProperty("czds.base.url");
+        authenBaseUrl = checkNullValue("authentication.base.url", authenBaseUrl);
+        czdsBaseUrl = checkNullValue("czds.base.url", czdsBaseUrl);
+
+        // Default to current dir if zonefile.output.directory is not specified.
+        String outputDir = properties.getProperty("zonefile.output.directory");
+        if(StringUtils.isBlank(outputDir)) {
+            outputDir = System.getProperty("user.dir");
         }
 
-        return new ClientConfiguration(userName, password, globalAccountURL, czdsDownloadURL, fileStoreageLocation);
+        configuration =  new ClientConfiguration(userName, password, authenBaseUrl, czdsBaseUrl, outputDir);
+
+        return configuration;
     }
 
-
-    /*If initiated using this constructor, location of file download is automatically set to temp*/
-    public ClientConfiguration(String userName, String password, String globalAccountURL, String czdsDownloadURL) throws IOException {
-        checkNullValue(userName);
-        checkNullValue(password);
-        checkNullValue(globalAccountURL);
-        checkNullValue(czdsDownloadURL);
-        this.userName = userName.trim();
-        this.password = password.trim();
-        this.globalAccountURL = globalAccountURL.trim();
-        this.czdsDownloadURL = formatURL(czdsDownloadURL.trim());
-        this.fileStoreageLocation = "temp";
+    /**
+     * If initiated using this constructor, you can specify location of file download
+     * */
+    private ClientConfiguration(String userName, String password, String authenBaseUrl, String czdsBaseUrl, String outputBaseDir) {
+        ClientConfiguration.username = userName;
+        ClientConfiguration.password = password;
+        ClientConfiguration.authenticationUrl = normalizeWithBackSlash(authenBaseUrl.trim()) + "api/authenticate/";
+        ClientConfiguration.czdsDownloadUrl = normalizeWithBackSlash(czdsBaseUrl.trim()) + "czds/downloads/";
+        ClientConfiguration.zonefileOutputDirectory = normalizeWithBackSlash(outputBaseDir) + "zonefiles/";
     }
 
-    /*If initiated using this constructor, you can specify location of file download*/
-    public ClientConfiguration(String userName, String password, String globalAccountURL, String czdsDownloadURL, String fileStoreageLocation) throws IOException {
-        this(userName, password, globalAccountURL, czdsDownloadURL);
-        checkNullValue(fileStoreageLocation);
-        this.fileStoreageLocation = fileStoreageLocation;
+    private static String normalizeWithBackSlash(String value) {
+        value = StringUtils.trim(value);
 
-    }
-
-
-    private String formatURL(String url) {
-        if (!url.endsWith("/")) {
-            url = url + "/";
+        if(!StringUtils.endsWith(value, "/")) {
+            value = value + "/";
         }
 
-        return url;
+        return value;
     }
 
-    private static void checkNullValue(String value) throws IOException {
-        if (value == null || value.trim().length() == 0) {
-            throw new IOException("Value Cannot be null");
+    private static String checkNullValue(String name, String value) throws IOException {
+        if(StringUtils.isBlank(value)) {
+            throw new IOException(name + " value cannot be null");
+        } else {
+            return value.trim();
         }
     }
 
-    public String getUserName() {
-        return userName;
+    public static String getUserName() {
+        return ClientConfiguration.username;
     }
 
-    public String getPassword() {
-        return password;
+    public static void setUserName(String userName) {
+        ClientConfiguration.username = userName;
     }
 
-    public String getGlobalAccountURL() {
-        return globalAccountURL;
+    public static String getPassword() {
+        return ClientConfiguration.password;
     }
 
-    public String getCzdsDownloadURL() {
-        return czdsDownloadURL;
+    public static void setPassword(String password) {
+        ClientConfiguration.password = password;
     }
 
-    public String getFileStoreageLocation() {
-        return fileStoreageLocation;
+    public static String getAuthenticationUrl() {
+        return ClientConfiguration.authenticationUrl;
+    }
+
+    public static String getCzdsDownloadUrl() {
+        return czdsDownloadUrl;
+    }
+
+    public static String getZonefileOutputDirectory() {
+        return ClientConfiguration.zonefileOutputDirectory;
+    }
+
+    public static void setZonefileOutputDirectory(String zonefileOutputDirectory) {
+        ClientConfiguration.zonefileOutputDirectory = normalizeWithBackSlash(zonefileOutputDirectory) + "zonefiles";
     }
 }
