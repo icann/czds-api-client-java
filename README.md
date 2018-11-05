@@ -8,17 +8,17 @@ Language: Java
 
 Build Tool: Maven
 
-# Configuration
+# Configurations
 
-You can provide default configuration in `application.properties` file.
+You can provide default configurations in `application.properties` file.
 
 ```
 # REST endpoint for authentication
-# Required
+# Can be overwritten via command line option -a
 authentication.base.url=https://accounts-api-qa.icann.org
    
 # REST endpoint for downloading zone files
-# Required
+# Can be overwritten via command line option -c
 czds.base.url=https://czds2-api-qa.icann.org
   
 # Account credential.
@@ -39,7 +39,9 @@ will be downloaded. You can also use command line options to pass in your accoun
 The command line options have higher precedence than the `application.properties` file.
 
 ```
-usage: ZoneFileDownloader [-h] [-o <arg>] [-p <arg>] [-t <arg>] [-u <arg>]
+usage: ZoneFileDownloader [-a <arg>] [-c <arg>] [-h] [-o <arg>] [-p <arg>] [-t <arg>] [-u <arg>]
+ -a,--authen-url <arg>   Specify the authentication REST endpoint base URL.
+ -c,--czds-url <arg>     Specify the CZDS REST endpoint base URL.
  -h,--help             Print usage.
  -o,--output <arg>     Specify the output directory where the file(s) will be saved.
  -p,--password <arg>   Specify your password
@@ -54,11 +56,26 @@ Run **`mvn clean install`**
 
 # Run
 
-* To download all of your APPROVED zone files, 
-    - run **`java -jar ./target/zonefile-downloader.jar`**
+* To download all of your APPROVED zone files assume that you have all the required configurations in application.properties
+    - run 
+    ```
+    java -jar ./target/zonefile-downloader.jar
+    ```
 
-* To download zone files for one or more TLDs (for example, abb, booking), 
-    - run **`java -jar ./target/zonefile-downloader.jar -t abb,booking`**
+* To download zone files for one or more TLDs (for example, abb, booking), assume that you have all the required configurations in application.properties
+    - run 
+    ```
+    java -jar ./target/zonefile-downloader.jar -t abb,booking
+    ```
 
-* To pass other commandline options, 
-    - run **`java -jar ./target/zonefile-downloader.jar -t booking -o /tmp/myzonefiles -u account@example.com -p mypassword`**
+* To pass in all commandline options, 
+    - run
+    
+    ```
+       java -jar ./target/zonefile-downloader.jar \
+       -a https://accounts-api-qa.icann.org \
+       -c https://czds2-api-qa.icann.org \
+       -t booking \
+       -o ./ \
+       -u username@example.com \
+       -p 1234567#Abcdefg```

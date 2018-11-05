@@ -39,8 +39,6 @@ public class ClientConfiguration {
         // Must specify authentication.base.url and czds.base.url
         String authenBaseUrl = properties.getProperty("authentication.base.url");
         String czdsBaseUrl = properties.getProperty("czds.base.url");
-        authenBaseUrl = checkNullValue("authentication.base.url", authenBaseUrl);
-        czdsBaseUrl = checkNullValue("czds.base.url", czdsBaseUrl);
 
         // Default to current dir if zonefile.output.directory is not specified.
         String outputDir = properties.getProperty("zonefile.output.directory");
@@ -57,11 +55,11 @@ public class ClientConfiguration {
      * If initiated using this constructor, you can specify location of file download
      * */
     private ClientConfiguration(String userName, String password, String authenBaseUrl, String czdsBaseUrl, String outputBaseDir) {
-        ClientConfiguration.username = userName;
-        ClientConfiguration.password = password;
-        ClientConfiguration.authenticationUrl = normalizeWithBackSlash(authenBaseUrl.trim()) + "api/authenticate/";
-        ClientConfiguration.czdsDownloadUrl = normalizeWithBackSlash(czdsBaseUrl.trim()) + "czds/downloads/";
-        ClientConfiguration.zonefileOutputDirectory = normalizeWithBackSlash(outputBaseDir) + "zonefiles/";
+        setUserName(userName);
+        setPassword(password);
+        setAuthenticationUrl(authenBaseUrl);
+        setCzdsDownloadUrl(czdsBaseUrl);
+        setZonefileOutputDirectory(outputBaseDir);
     }
 
     private static String normalizeWithBackSlash(String value) {
@@ -74,12 +72,38 @@ public class ClientConfiguration {
         return value;
     }
 
-    private static String checkNullValue(String name, String value) throws IOException {
+    public static String checkNullValue(String name, String value) throws IOException {
         if(StringUtils.isBlank(value)) {
-            throw new IOException(name + " value cannot be null");
+            throw new IOException(String.format("ERROR: missging %. Please configure it in application.properties file or pass in via command line.", name));
         } else {
             return value.trim();
         }
+    }
+
+    public static String validate() {
+        StringBuilder sb = new StringBuilder();
+
+        // Check Authentication url
+        if(StringUtils.isBlank(getAuthenticationUrl())) {
+            sb.append("Missing authentication base URL.\n");
+        }
+
+        // Check CZDS url
+        if(StringUtils.isBlank(getCzdsDownloadUrl())) {
+            sb.append("Missing CZDS base URL.\n");
+        }
+
+        // check username
+        if(StringUtils.isBlank(getUserName())) {
+            sb.append("Missing username.\n");
+        }
+
+        // check password
+        if(StringUtils.isBlank(getPassword())) {
+            sb.append("Missing password.\n");
+        }
+
+        return sb.toString();
     }
 
     public static String getUserName() {
@@ -87,7 +111,9 @@ public class ClientConfiguration {
     }
 
     public static void setUserName(String userName) {
-        ClientConfiguration.username = userName;
+        if(!StringUtils.isBlank(userName)) {
+            ClientConfiguration.username = userName;
+        }
     }
 
     public static String getPassword() {
@@ -95,15 +121,29 @@ public class ClientConfiguration {
     }
 
     public static void setPassword(String password) {
-        ClientConfiguration.password = password;
+        if(!StringUtils.isBlank(password)) {
+            ClientConfiguration.password = password;
+        }
     }
 
     public static String getAuthenticationUrl() {
         return ClientConfiguration.authenticationUrl;
     }
 
+    public static void setAuthenticationUrl(String authenBaseUrl) {
+        if(!StringUtils.isBlank(authenBaseUrl)) {
+            ClientConfiguration.authenticationUrl = normalizeWithBackSlash(authenBaseUrl) + "api/authenticate/";
+        }
+    }
+
     public static String getCzdsDownloadUrl() {
         return czdsDownloadUrl;
+    }
+
+    public static void setCzdsDownloadUrl(String czdsBaseUrl) {
+        if(!StringUtils.isBlank(czdsBaseUrl)) {
+            ClientConfiguration.czdsDownloadUrl = normalizeWithBackSlash(czdsBaseUrl.trim()) + "czds/downloads/";
+        }
     }
 
     public static String getZonefileOutputDirectory() {
@@ -111,6 +151,8 @@ public class ClientConfiguration {
     }
 
     public static void setZonefileOutputDirectory(String zonefileOutputDirectory) {
-        ClientConfiguration.zonefileOutputDirectory = normalizeWithBackSlash(zonefileOutputDirectory) + "zonefiles";
+        if(!StringUtils.isBlank(zonefileOutputDirectory)) {
+            ClientConfiguration.zonefileOutputDirectory = normalizeWithBackSlash(zonefileOutputDirectory) + "zonefiles";
+        }
     }
 }

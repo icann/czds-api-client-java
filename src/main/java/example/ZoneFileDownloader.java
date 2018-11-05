@@ -2,6 +2,7 @@ package example;
 
 
 import org.apache.commons.cli.*;
+import org.apache.commons.lang3.StringUtils;
 import org.icann.czds.sdk.client.CZDSClient;
 import org.icann.czds.sdk.model.AuthenticationException;
 import org.icann.czds.sdk.model.ClientConfiguration;
@@ -75,6 +76,8 @@ public class ZoneFileDownloader {
                 .addOption("p", "password", true, "Specify your password")
                 .addOption("o", "output", true, "Specify the output directory where the file(s) will be saved.")
                 .addOption("h", "help", false, "Print usage.")
+                .addOption("a", "authen-url", true, "Specify the authentication REST endpoint base URL.")
+                .addOption("c", "czds-url", true, "Specify the CZDS REST endpoint base URL.")
                 .addOption(tldOption);
 
         // Create a parser
@@ -109,6 +112,16 @@ public class ZoneFileDownloader {
             System.exit(1);
         }
 
+        // Authetication base URL
+        if(commandLine.hasOption("authen-url")) {
+            configuration.setAuthenticationUrl(commandLine.getOptionValue("authen-url"));
+        }
+
+        // CZDS base URL
+        if(commandLine.hasOption("czds-url")) {
+            configuration.setCzdsDownloadUrl(commandLine.getOptionValue("czds-url"));
+        }
+
         // Username
         if(commandLine.hasOption("username")) {
             configuration.setUserName(commandLine.getOptionValue("username"));
@@ -123,6 +136,15 @@ public class ZoneFileDownloader {
         String directory = null;
         if(commandLine.hasOption("output")) {
             configuration.setZonefileOutputDirectory(commandLine.getOptionValue("output"));
+        }
+
+        // Make sure all configurations are provided
+        String errorMsg = ClientConfiguration.validate();
+        if(!StringUtils.isBlank(errorMsg)) {
+            System.out.println("ERROR: missing the required configurations. " +
+                    "Please provide them in either application.properties file or pass in via command line options");
+            System.out.println(errorMsg);
+            System.exit(1);
         }
 
         return new CZDSClient(configuration);
