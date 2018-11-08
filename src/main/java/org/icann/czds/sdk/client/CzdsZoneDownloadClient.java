@@ -2,6 +2,7 @@ package org.icann.czds.sdk.client;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -20,10 +21,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
-/*
-CZDSClient helps you to download all zone file for which a user is approved for or a particular zone file.
-*/
-public class CZDSClient {
+/**
+ * CzdsZoneDownloadClient helps you to download all zone file for which a user is approved for or a particular zone file.
+ */
+public class CzdsZoneDownloadClient {
 
     protected ObjectMapper objectMapper;
 
@@ -32,25 +33,37 @@ public class CZDSClient {
     private String token;
 
     /*
-    Instantiate CZDSClient by providing ClientConfiguration
-    */
-    public CZDSClient(ClientConfiguration clientConfiguration) {
+     * Instantiate CzdsZoneDownloadClient by providing ClientConfiguration
+     */
+    public CzdsZoneDownloadClient(ClientConfiguration clientConfiguration) {
         this.objectMapper = new ObjectMapper();
         this.clientConfiguration = clientConfiguration;
 
     }
 
+    public String getCzdsDownloadUrl() {
+        return StringUtils.appendIfMissing(clientConfiguration.getCzdsBaseUrl(), "/") + "czds/downloads/";
+    }
+
+    public String getAuthenticationUrl() {
+        return StringUtils.appendIfMissing(clientConfiguration.getAuthenticationBaseUrl(), "/") + "api/authenticate/";
+    }
+
+    public String getZonefileOutputDirectory() {
+        return StringUtils.appendIfMissing(clientConfiguration.getWorkingDirectory(), "/") + "zonefiles";
+    }
+
     /*
-     This helps you to download All Zone File for which user is approved for.
-     Throws AuthenticationException if not authorized.
-    */
+     * This helps you to download All Zone File for which user is approved for.
+     * Throws AuthenticationException if not authorized.
+     */
     public List<File> downloadApprovedZoneFiles() throws AuthenticationException, IOException{
         List<File> zoneFiles = new ArrayList<>();
         try {
             authenticateIfRequired();
 
 
-            String linksURL = clientConfiguration.getCzdsDownloadUrl() + ApplicationConstants.CZDS_LINKS;
+            String linksURL = getCzdsDownloadUrl() + ApplicationConstants.CZDS_LINKS;
 
             HttpResponse response = makeGetRequest(linksURL);
 
@@ -74,7 +87,7 @@ public class CZDSClient {
     public File downloadZoneFile(String zone) throws  AuthenticationException, IOException{
         try {
             authenticateIfRequired();
-            String downloadURL = clientConfiguration.getCzdsDownloadUrl() + zone.trim() + ApplicationConstants.CZDS_ZONE;
+            String downloadURL = getCzdsDownloadUrl() + zone.trim() + ApplicationConstants.CZDS_ZONE;
             return getZoneFile(downloadURL);
         } catch (AuthenticationException | IOException e) {
             throw e;
@@ -134,7 +147,7 @@ public class CZDSClient {
         }
 
         HttpClient httpclient = HttpClients.createDefault();
-        HttpPost httppost = new HttpPost(clientConfiguration.getAuthenticationUrl());
+        HttpPost httppost = new HttpPost(getAuthenticationUrl());
 
         Map<String, String> params = new HashMap<>();
         params.put("username", clientConfiguration.getUserName());
@@ -145,7 +158,7 @@ public class CZDSClient {
         HttpEntity entity = response.getEntity();
 
         if (response.getStatusLine().getStatusCode() == 404) {
-            throw new IOException(String.format("ERROR: Please check url %s", clientConfiguration.getAuthenticationUrl()));
+            throw new IOException(String.format("ERROR: Please check url %s", getAuthenticationUrl()));
         }
 
         if (response.getStatusLine().getStatusCode() == 401) {
@@ -174,12 +187,12 @@ public class CZDSClient {
 
     private File createFileLocally(InputStream inputStream, String fileName) throws IOException {
         System.out.println("Saving zone file " + fileName);
-        File tempDirectory = new File(clientConfiguration.getZonefileOutputDirectory());
+        File tempDirectory = new File(getZonefileOutputDirectory());
         if (!tempDirectory.exists()) {
             tempDirectory.mkdir();
         }
 
-        File file = new File(clientConfiguration.getZonefileOutputDirectory(), fileName);
+        File file = new File(getZonefileOutputDirectory(), fileName);
         try {
             Files.copy(inputStream, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
 

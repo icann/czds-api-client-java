@@ -28,8 +28,8 @@ icann.account.password=12345Abcd#
    
 # The directory where zone files will be saved
 # Optional. Default to current directory.
-# Can be overwritten via commandline option -o
-zonefile.output.directory=/where/zonefiles/will/be/saved
+# Can be overwritten via commandline option -d
+working.directory=/where/zonefiles/will/be/saved
 ```
 
 # Command line Options
@@ -42,12 +42,12 @@ The command line options have higher precedence than the `application.properties
 usage: ZoneFileDownloader [-a <arg>] [-c <arg>] [-h] [-o <arg>] [-p <arg>] [-t <arg>] [-u <arg>]
  -a,--authen-url <arg>   Specify the authentication REST endpoint base URL.
  -c,--czds-url <arg>     Specify the CZDS REST endpoint base URL.
- -h,--help             Print usage.
- -o,--output <arg>     Specify the output directory where the file(s) will be saved.
- -p,--password <arg>   Specify your password
- -t,--tld <arg>        Specify the TLD(s) you want to download zone file(s) for. Comma separated multiple TLDs. 
-                       By default, all APPROVED zone files will be downloaded.
- -u,--username <arg>   Specify your username.
+ -h,--help               Print usage.
+ -d,--directory <arg>    Specify the directory where the file(s) will be saved.
+ -p,--password <arg>     Specify your password
+ -t,--tld <arg>          Specify the TLD(s) you want to download zone file(s) for. Comma separated multiple TLDs. 
+                         By default, all APPROVED zone files will be downloaded.
+ -u,--username <arg>     Specify your username.
 ```
 
 # Build
@@ -75,10 +75,10 @@ It produces an executable jar `./target/zonefile-downloader.jar`
     - run
 ```
        java -jar ./target/zonefile-downloader.jar \
-       -a https://accounts-api-qa.icann.org \
-       -c https://czds2-api-qa.icann.org \
+       -a https://account-api-test.icann.org \
+       -c https://czds-api-test.icann.org \
        -t booking \
-       -o /where/you/want/to/save/zonefiles \
+       -d /where/you/want/to/save/zonefiles \
        -u username@example.com \
        -p 1234567#Abcdefg
  ``` 

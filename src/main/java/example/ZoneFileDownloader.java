@@ -3,7 +3,7 @@ package example;
 
 import org.apache.commons.cli.*;
 import org.apache.commons.lang3.StringUtils;
-import org.icann.czds.sdk.client.CZDSClient;
+import org.icann.czds.sdk.client.CzdsZoneDownloadClient;
 import org.icann.czds.sdk.model.AuthenticationException;
 import org.icann.czds.sdk.model.ClientConfiguration;
 
@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class ZoneFileDownloader {
 
-    private CZDSClient client;
+    private CzdsZoneDownloadClient client;
 
     public static void main(String[] args) {
         new ZoneFileDownloader().run(args);
@@ -30,7 +30,7 @@ public class ZoneFileDownloader {
             System.exit(1);
         }
 
-        // Build the REST API wrapper - CZDSClient
+        // Build the REST API wrapper - CzdsZoneDownloadClient
         try {
             client = buildCzdsClient(commandLine);
         } catch (IOException e) {
@@ -74,7 +74,7 @@ public class ZoneFileDownloader {
 
         options.addOption("u", "username", true, "Specify your username.")
                 .addOption("p", "password", true, "Specify your password")
-                .addOption("o", "output", true, "Specify the output directory where the file(s) will be saved.")
+                .addOption("d", "directory", true, "Specify the directory where the file(s) will be saved.")
                 .addOption("h", "help", false, "Print usage.")
                 .addOption("a", "authen-url", true, "Specify the authentication REST endpoint base URL.")
                 .addOption("c", "czds-url", true, "Specify the CZDS REST endpoint base URL.")
@@ -102,7 +102,7 @@ public class ZoneFileDownloader {
     /**
      * Build client
      */
-    private CZDSClient buildCzdsClient(CommandLine commandLine) throws IOException {
+    private CzdsZoneDownloadClient buildCzdsClient(CommandLine commandLine) throws IOException {
         // Lets get an instance of ClientConfiguration
         ClientConfiguration configuration = null;
         try {
@@ -114,12 +114,12 @@ public class ZoneFileDownloader {
 
         // Authetication base URL
         if(commandLine.hasOption("authen-url")) {
-            configuration.setAuthenticationUrl(commandLine.getOptionValue("authen-url"));
+            configuration.setAuthenticationBaseUrl(commandLine.getOptionValue("authen-url"));
         }
 
         // CZDS base URL
         if(commandLine.hasOption("czds-url")) {
-            configuration.setCzdsDownloadUrl(commandLine.getOptionValue("czds-url"));
+            configuration.setCzdsBaseUrl(commandLine.getOptionValue("czds-url"));
         }
 
         // Username
@@ -134,8 +134,8 @@ public class ZoneFileDownloader {
 
         // Directory
         String directory = null;
-        if(commandLine.hasOption("output")) {
-            configuration.setZonefileOutputDirectory(commandLine.getOptionValue("output"));
+        if(commandLine.hasOption("directory")) {
+            configuration.setWorkingDirectory(commandLine.getOptionValue("directory"));
         }
 
         // Make sure all configurations are provided
@@ -147,7 +147,7 @@ public class ZoneFileDownloader {
             System.exit(1);
         }
 
-        return new CZDSClient(configuration);
+        return new CzdsZoneDownloadClient(configuration);
     }
 
     /**
