@@ -1,7 +1,7 @@
 package example;
 
 import org.apache.commons.cli.*;
-import org.icann.czds.sdk.client.CzdsZoneDownloadClient;
+import org.icann.czds.sdk.client.ZoneDownloadClient;
 import org.icann.czds.sdk.model.AuthenticationException;
 
 import java.io.*;
@@ -16,7 +16,7 @@ import static example.CommandlineParser.parseCommandLineArguments;
  */
 public class ZoneFileDownloader {
 
-    private CzdsZoneDownloadClient client;
+    private ZoneDownloadClient client;
 
     public static void main(String[] args) {
         new ZoneFileDownloader().run(args);
@@ -30,9 +30,9 @@ public class ZoneFileDownloader {
             System.exit(1);
         }
 
-        // Build the REST API wrapper - CzdsZoneDownloadClient
+        // Build the REST API wrapper - ZoneDownloadClient
         try {
-            client = new CzdsZoneDownloadClient(mergeCommandOptions(commandLine));
+            client = new ZoneDownloadClient(mergeCommandOptions(commandLine));
         } catch (IOException e) {
             System.out.println("ERROR: " + e.getMessage());
             System.exit(1);
