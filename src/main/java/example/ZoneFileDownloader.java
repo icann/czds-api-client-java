@@ -62,8 +62,9 @@ public class ZoneFileDownloader {
      * Example of downloading all your APPROVED zone files at once
      */
     private void downloadAllApprovedZoneFiles() throws IOException, AuthenticationException {
-        System.out.println("Start downloading all APPROVED zone files. This may take a few minutes.");
+        System.out.println("Start downloading all APPROVED zone files. This may take a while.");
         List<File> fileList = client.downloadApprovedZoneFiles();
+        System.out.println("Finishing downloading all APPROVED zone files.");
         printResultFiles(fileList);
     }
 
@@ -71,12 +72,14 @@ public class ZoneFileDownloader {
      * Example of downloading the zone file for the given TLD
      */
     private void downloadZoneFile(String[] tlds) throws IOException, AuthenticationException {
-        System.out.println("Start download zone file(s). This may take a few minutes.");
+        System.out.println("Start download zone file(s). This may take a while.");
 
         List<File> fileList = new ArrayList<>();
         for(int i = 0; i < tlds.length; i ++) {
             fileList.add(client.downloadZoneFile(tlds[i]));
         }
+
+        System.out.println("Finishing downloading the zone file(s).");
 
         printResultFiles(fileList);
     }

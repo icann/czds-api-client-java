@@ -43,7 +43,7 @@ public class CommandlineParser {
 
         // Directory
         String directory = null;
-        if(commandLine.hasOption("output")) {
+        if(commandLine.hasOption("directory")) {
             configuration.setWorkingDirectory(commandLine.getOptionValue("directory"));
         }
 

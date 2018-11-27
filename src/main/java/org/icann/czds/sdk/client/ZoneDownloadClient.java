@@ -55,7 +55,13 @@ public class ZoneDownloadClient extends CzdsClient{
             Set<String> listOfDownloadURLs = getDownloadURLs(response);
 
             for (String url : listOfDownloadURLs) {
-                zoneFiles.add(getZoneFile(url));
+                try {
+                    File savedZoneFile = getZoneFile(url);
+                    zoneFiles.add(savedZoneFile);
+                } catch (Exception e) {
+                    System.out.println(String.format("ERROR: failed to download zone file for zone - %s - with error %s", url, e.getMessage()));
+                    continue;
+                }
             }
 
             return zoneFiles;
@@ -94,7 +100,7 @@ public class ZoneDownloadClient extends CzdsClient{
     }
 
     private File createFileLocally(InputStream inputStream, String fileName) throws IOException {
-        System.out.println("Saving zone file " + fileName);
+        System.out.println("Saving zone file to " + fileName);
         File tempDirectory = new File(getZonefileOutputDirectory());
         if (!tempDirectory.exists()) {
             tempDirectory.mkdir();
@@ -107,7 +113,7 @@ public class ZoneDownloadClient extends CzdsClient{
             inputStream.close();
             return file;
         } catch (IOException e) {
-            throw new IOException("ERROR: Failed to save file " + file.getAbsolutePath(), e);
+            throw new IOException("ERROR: Failed to save file to " + file.getAbsolutePath(), e);
         }
     }
 
