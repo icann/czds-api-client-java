@@ -1,15 +1,19 @@
-# CZDS API client
+CZDS API client in Java
+=======================
 
 This repository provides a Java example of how to download zone files via CZDS (Centralized Zone Data Service) 
 REST API. A detail [API Specs](https://github.com/icann/czds-api-client/blob/master/docs/ICANN_CZDS_api.pdf) is
 included in this reposity in the [docs directory](https://github.com/icann/czds-api-client/tree/master/docs).
 
-# Environment
+Environment
+-----------
+
 Language: Java
 
 Build Tool: Maven
 
-# Configurations
+Configurations
+--------------
 
 You can provide default configurations in `application.properties` file.
 
@@ -33,7 +37,8 @@ icann.account.password=12345Abcd#
 working.directory=/where/zonefiles/will/be/saved
 ```
 
-# Command line Options
+Command line Options
+--------------------
 
 Use command line `-t` to specify the TLDs you want to download zone files for. By default, all APPROVED zone files
 will be downloaded. You can also use command line options to pass in your account credential and output directory. 
@@ -51,14 +56,17 @@ usage: ZoneFileDownloader [-a <arg>] [-c <arg>] [-h] [-o <arg>] [-p <arg>] [-t <
  -u,--username <arg>     Specify your username.
 ```
 
-# Build
+Build
+------
+
 ```
 mvn clean install
 ```
 
 It produces an executable jar `./target/zonefile-downloader.jar`
 
-# Run
+Run
+---
 
 * To download all of your APPROVED zone files assume that you have set all the required configurations in application.properties
     - run 
@@ -84,6 +92,13 @@ It produces an executable jar `./target/zonefile-downloader.jar`
        -p 1234567#Abcdefg
  ``` 
  
- # Documentation
+Documentation
+-------------
  
  * CZDS REST API Specs - https://github.com/icann/czds-api-client/blob/master/docs/ICANN_CZDS_api.pdf
+ 
+ 
+ Contributing
+ ------------
+ 
+ Contributions are welcome.
