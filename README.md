@@ -2,8 +2,10 @@ CZDS API client in Java
 =======================
 
 This repository provides a Java example of how to download zone files via CZDS (Centralized Zone Data Service) 
-REST API. A detail [API Specs](https://github.com/icann/czds-api-client/blob/master/docs/ICANN_CZDS_api.pdf) is
-included in this reposity in the [docs directory](https://github.com/icann/czds-api-client/tree/master/docs).
+REST API. A detail [API Specs](https://github.com/icann/czds-api-client-java/blob/master/docs/ICANN_CZDS_api.pdf) is
+included in this reposity in the [docs directory](https://github.com/icann/czds-api-client-java/tree/master/docs).
+
+There is also an example provided in Python. It can be found in [this repo](https://github.com/icann/czds-api-client-python).
 
 Environment
 -----------
