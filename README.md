@@ -20,11 +20,11 @@ You can provide default configurations in `application.properties` file.
 ```
 # REST endpoint for authentication
 # Can be overwritten via command line option -a
-authentication.base.url=https://czds-api-test.icann.org
+authentication.base.url=https://account-api-test.icann.org
    
 # REST endpoint for downloading zone files
 # Can be overwritten via command line option -c
-czds.base.url=https://account-api-test.icann.org
+czds.base.url=https://czds-api-test.icann.org
   
 # Account credential.
 # Optional. Can be overwritten via commandline option -u and -p
