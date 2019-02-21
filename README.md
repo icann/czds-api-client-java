@@ -10,9 +10,9 @@ There is also an example provided in Python. It can be found in [this repo](http
 Environment
 -----------
 
-Language: Java
+Language: [JDK 1.8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or later
 
-Build Tool: Maven
+Build Tool: [Maven 3.2+](https://maven.apache.org/download.cgi)
 
 Configurations
 --------------
@@ -109,3 +109,7 @@ Other
 -----
 
 Reference Implementation in Python: https://github.com/icann/czds-api-client-python
+
+Java 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+
+Apache Maven 3: https://maven.apache.org/download.cgi
