@@ -25,7 +25,9 @@ public class ZoneDownloadClient extends CzdsClient{
     }
 
     /**
-     * REST endpoint to download zone files
+     *  REST endpoint to download zone files
+     *
+     * @return The REST endpoint URL
      */
     public String getCzdsDownloadUrl() {
         return StringUtils.appendIfMissing(clientConfiguration.getCzdsBaseUrl(), "/") + "czds/downloads/";
@@ -33,6 +35,8 @@ public class ZoneDownloadClient extends CzdsClient{
 
     /**
      * Directory where zone files will be saved
+     *
+     * @return The directory where the output files will be saved
      */
     public String getZonefileOutputDirectory() {
         return StringUtils.appendIfMissing(clientConfiguration.getWorkingDirectory(), "/") + "zonefiles";

@@ -10,6 +10,12 @@ public class CommandlineParser {
 
     /**
      * Build client
+     *
+     * @param commandLine The command line options
+     *
+     * @return {@link ClientConfiguration}
+     *
+     * @throws IOException Failed to get the command line options together
      */
     public static ClientConfiguration mergeCommandOptions(CommandLine commandLine) throws IOException {
         // Lets get an instance of ClientConfiguration
@@ -61,6 +67,10 @@ public class CommandlineParser {
 
     /**
      * Parse command line options
+     *
+     * @param args The command line arguments
+     *
+     * @return {@link CommandLine}
      */
     public static CommandLine parseCommandLineArguments(String[] args) {
 
