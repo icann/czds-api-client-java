@@ -94,6 +94,22 @@ Run
        -p 1234567#Abcdefg
  ``` 
  
+Release
+-------
+
+The `org.icann.czd:czds-client` library has been published in [Maven Central Repository](https://mvnrepository.com/). 
+You can include the following artifact in your project:
+
+```
+<!-- https://mvnrepository.com/artifact/org.icann.czds/czds-client -->
+<dependency>
+    <groupId>org.icann.czds</groupId>
+    <artifactId>czds-client</artifactId>
+    <version>1.0</version>
+</dependency>
+
+```
+
 Documentation
 -------------
  
