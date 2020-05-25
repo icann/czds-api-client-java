@@ -10,9 +10,9 @@ There is also an example provided in Python. It can be found in [this repo](http
 Environment
 -----------
 
-Language: [JDK 1.8](http://www.oracle.com/technetwork/java/javase/downloads/index.html) or later
+Language: [Java 11](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
 
-Build Tool: [Maven 3.2+](https://maven.apache.org/download.cgi)
+Build Tool: [Maven 3.6+](https://maven.apache.org/download.cgi)
 
 Configurations
 --------------
@@ -97,7 +97,7 @@ Run
 Release
 -------
 
-The `org.icann.czd:czds-client` library has been published in [Maven Central Repository](https://mvnrepository.com/). 
+The `org.icann.czd:czds-client` library has been published in [Maven Central Repository](https://mvnrepository.com/artifact/org.icann.czds/czds-client). 
 You can include the following artifact in your project:
 
 ```
@@ -105,7 +105,7 @@ You can include the following artifact in your project:
 <dependency>
     <groupId>org.icann.czds</groupId>
     <artifactId>czds-client</artifactId>
-    <version>1.0</version>
+    <version>1.x.x</version>
 </dependency>
 
 ```
@@ -126,6 +126,6 @@ Other
 
 Reference Implementation in Python: https://github.com/icann/czds-api-client-python
 
-Java 8: http://www.oracle.com/technetwork/java/javase/downloads/index.html
+Java: http://www.oracle.com/technetwork/java/javase/downloads/index.html
 
 Apache Maven 3: https://maven.apache.org/download.cgi
