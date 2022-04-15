@@ -8,20 +8,20 @@ import java.util.Properties;
 
 public class ClientConfiguration {
 
-    private static ClientConfiguration configuration = null;
+    private static  ClientConfiguration configuration = null;
 
-    private static String username;
-    private static String password;
-    private static String authenticationBaseUrl;
-    private static String czdsBaseUrl;
-    private static String workingDirectory;
+    private  String username;
+    private  String password;
+    private  String authenticationBaseUrl;
+    private  String czdsBaseUrl;
+    private  String czdsDownloadBaseUrl;
+    private  String workingDirectory;
 
 
     public static ClientConfiguration getInstance() throws IOException{
         if(configuration == null) {
-            loadDefaultClientConfiguration();
+            configuration = loadDefaultClientConfiguration();
         }
-
         return configuration;
     }
 
@@ -39,6 +39,7 @@ public class ClientConfiguration {
         // Must specify authentication.base.url and czds.base.url
         String authenBaseUrl = properties.getProperty("authentication.base.url");
         String czdsBaseUrl = properties.getProperty("czds.base.url");
+        String czdsDownloadBaseUrl = properties.getProperty("czds.download.base.url");
 
         // Default to current dir if zonefile.output.directory is not specified.
         String workingDir = properties.getProperty("working.directory");
@@ -46,19 +47,25 @@ public class ClientConfiguration {
             workingDir = System.getProperty("user.dir");
         }
 
-        configuration =  new ClientConfiguration(userName, password, authenBaseUrl, czdsBaseUrl, workingDir);
-
-        return configuration;
+        if(czdsDownloadBaseUrl == null){
+            czdsDownloadBaseUrl = czdsBaseUrl;
+        }
+        return new ClientConfiguration(userName, password, authenBaseUrl, czdsBaseUrl, czdsDownloadBaseUrl, workingDir);
     }
 
     /**
      * If initiated using this constructor, you can specify location of file download
      * */
     private ClientConfiguration(String userName, String password, String authenBaseUrl, String czdsBaseUrl, String workingDir) {
+        this(userName, password, authenBaseUrl, czdsBaseUrl, czdsBaseUrl, workingDir);
+    }
+
+    private ClientConfiguration(String userName, String password, String authenBaseUrl, String czdsBaseUrl, String downloadurl, String workingDir) {
         setUserName(userName);
         setPassword(password);
         setAuthenticationBaseUrl(authenBaseUrl);
         setCzdsBaseUrl(czdsBaseUrl);
+        setCzdsDownloadBaseUrl(downloadurl);
         setWorkingDirectory(workingDir);
     }
 
@@ -80,7 +87,7 @@ public class ClientConfiguration {
         }
     }
 
-    public static String validate() {
+    public String validate() {
         StringBuilder sb = new StringBuilder();
 
         // Check Authentication url
@@ -106,50 +113,58 @@ public class ClientConfiguration {
         return sb.toString();
     }
 
-    public static String getUserName() {
-        return ClientConfiguration.username;
+    public  String getUserName() {
+        return username;
     }
 
-    public static void setUserName(String userName) {
+    public  void setUserName(String userName) {
         if(!StringUtils.isBlank(userName)) {
-            ClientConfiguration.username = userName;
+            this.username = userName;
         }
     }
 
-    public static String getPassword() {
-        return ClientConfiguration.password;
+    public String getPassword() {
+        return password;
     }
 
-    public static void setPassword(String password) {
+    public  void setPassword(String password) {
         if(!StringUtils.isBlank(password)) {
-            ClientConfiguration.password = password;
+           this.password = password;
         }
     }
 
-    public static String getAuthenticationBaseUrl() {
+    public String getAuthenticationBaseUrl() {
         return authenticationBaseUrl;
     }
 
 
 
-    public static void setAuthenticationBaseUrl(String authenBaseUrl) {
-        ClientConfiguration.authenticationBaseUrl = authenBaseUrl;
+    public void setAuthenticationBaseUrl(String authenBaseUrl) {
+        this.authenticationBaseUrl = authenBaseUrl;
     }
 
 
-    public static String getCzdsBaseUrl() {
+    public String getCzdsBaseUrl() {
         return czdsBaseUrl;
     }
 
-    public static void setCzdsBaseUrl(String czdsBaseUrl) {
-        ClientConfiguration.czdsBaseUrl = czdsBaseUrl;
+    public void setCzdsBaseUrl(String czdsBaseUrl) {
+        this.czdsBaseUrl = czdsBaseUrl;
     }
 
-    public static String getWorkingDirectory() {
-        return ClientConfiguration.workingDirectory;
+    public String getWorkingDirectory() {
+        return workingDirectory;
     }
 
-    public static void setWorkingDirectory(String directory) {
-        ClientConfiguration.workingDirectory = directory;
+    public void setWorkingDirectory(String directory) {
+        this.workingDirectory = directory;
+    }
+
+    public String getCzdsDownloadBaseUrl() {
+        return czdsDownloadBaseUrl;
+    }
+
+    public void setCzdsDownloadBaseUrl(String czdsDownloadBaseUrl) {
+        this.czdsDownloadBaseUrl = czdsDownloadBaseUrl;
     }
 }

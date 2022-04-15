@@ -54,7 +54,7 @@ public class CommandlineParser {
         }
 
         // Make sure all configurations are provided
-        String errorMsg = ClientConfiguration.validate();
+        String errorMsg = configuration.validate();
         if(!StringUtils.isBlank(errorMsg)) {
             System.out.println("ERROR: missing the required configurations. " +
                     "Please provide them in either application.properties file or pass in via command line options");
