@@ -15,7 +15,7 @@ import java.util.*;
 /**
  * ZoneDownloadClient helps you to download all zone file for which a user is approved for or a particular zone file.
  */
-public class ZoneDownloadClient extends CzdsClient{
+public class ZoneDownloadClient extends CzdsClient {
 
     /*
      * Instantiate ZoneDownloadClient by providing ClientConfiguration
@@ -25,12 +25,16 @@ public class ZoneDownloadClient extends CzdsClient{
     }
 
     /**
-     *  REST endpoint to download zone files
+     * REST endpoint to download zone files
      *
      * @return The REST endpoint URL
      */
     public String getCzdsDownloadUrl() {
-        return StringUtils.appendIfMissing(clientConfiguration.getCzdsBaseUrl(), "/") + "czds/downloads/";
+        return StringUtils.appendIfMissing(clientConfiguration.getCzdsDownloadBaseUrl(), "/") + "czds/downloads/";
+    }
+
+    public String getBackendApiUrl(){
+        return StringUtils.appendIfMissing(clientConfiguration.getCzdsBaseUrl(), "/") + "czds/";
     }
 
     /**
@@ -46,28 +50,25 @@ public class ZoneDownloadClient extends CzdsClient{
      * This helps you to download All Zone File for which user is approved for.
      * Throws AuthenticationException if not authorized.
      */
-    public List<File> downloadApprovedZoneFiles() throws AuthenticationException, IOException{
+    public List<File> downloadApprovedZoneFiles() throws AuthenticationException, IOException {
         List<File> zoneFiles = new ArrayList<>();
         try {
             authenticateIfRequired();
-
-
-            String linksURL = getCzdsDownloadUrl() + ApplicationConstants.CZDS_LINKS;
-
+            String linksURL = getBackendApiUrl() + "downloads/" + ApplicationConstants.CZDS_LINKS;
             HttpResponse response = makeGetRequest(linksURL);
 
             Set<String> listOfDownloadURLs = getDownloadURLs(response);
-
+            long start = System.currentTimeMillis();
             for (String url : listOfDownloadURLs) {
                 try {
                     File savedZoneFile = getZoneFile(url);
                     zoneFiles.add(savedZoneFile);
                 } catch (Exception e) {
                     System.out.println(String.format("ERROR: failed to download zone file for zone - %s - with error %s", url, e.getMessage()));
-                    continue;
                 }
             }
-
+            long end = System.currentTimeMillis();
+            System.out.println("download " + zoneFiles.size() + " zone files took " + (end - start)/1000 + " seconds");
             return zoneFiles;
         } catch (AuthenticationException | IOException e) {
             throw e;
@@ -79,7 +80,7 @@ public class ZoneDownloadClient extends CzdsClient{
      accepts name of tld as input.
      Throws AuthenticationException if not authorized to download that particular tld.
     */
-    public File downloadZoneFile(String zone) throws  AuthenticationException, IOException{
+    public File downloadZoneFile(String zone) throws AuthenticationException, IOException {
         try {
             authenticateIfRequired();
             String downloadURL = getCzdsDownloadUrl() + zone.trim() + ApplicationConstants.CZDS_ZONE;
@@ -91,15 +92,27 @@ public class ZoneDownloadClient extends CzdsClient{
 
 
     private File getZoneFile(String downloadURL) throws IOException, AuthenticationException {
-        System.out.println("Downloading zone file from " + downloadURL);
+
+        System.out.println("Sending head request for zone file from " + downloadURL);
+        long headStart = System.currentTimeMillis();
+        makeHeadRequest(downloadURL);
+        long headEnd = System.currentTimeMillis();
+        System.out.println("head request for zone file " + downloadURL + " took " + (headEnd - headStart) + " millisecond");
+        System.out.println("Downloading  zone file from " + downloadURL);
+        long start = System.currentTimeMillis();
         HttpResponse response = makeGetRequest(downloadURL);
-        return createFileLocally(response.getEntity().getContent(), getFileName(response));
+        File file = createFileLocally(response.getEntity().getContent(), getFileName(response));
+        long end = System.currentTimeMillis();
+        System.out.println("download zone file from " + downloadURL + " took " + (end - start) + " millisecond");
+        return file;
     }
 
+    @SuppressWarnings("unchecked")
     private Set<String> getDownloadURLs(HttpResponse response) throws IOException, AuthenticationException {
         if (response.getEntity().getContentLength() == 0) {
             return new HashSet<>();
         }
+
         return this.objectMapper.readValue(response.getEntity().getContent(), Set.class);
     }
 

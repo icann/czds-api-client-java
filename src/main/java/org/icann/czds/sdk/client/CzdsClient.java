@@ -7,6 +7,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.HttpClients;
@@ -38,6 +39,45 @@ public class CzdsClient {
 
     protected String getAuthenticationUrl() {
         return StringUtils.appendIfMissing(clientConfiguration.getAuthenticationBaseUrl(), "/") + "api/authenticate/";
+    }
+
+    protected HttpResponse makeHeadRequest(String url) throws IOException, AuthenticationException {
+        HttpClient httpclient = HttpClients.createDefault();
+        HttpHead httpHead = new HttpHead(url);
+        httpHead.addHeader("Authorization", "Bearer " + this.token);
+        httpHead.addHeader("Accept-Encoding", "gzip");
+        HttpResponse response = httpclient.execute(httpHead);
+        if (response.getStatusLine().getStatusCode() == 404) {
+            System.out.println(String.format("ERROR: Please check url %s", url));
+        }
+
+        if(response.getStatusLine().getStatusCode() == 403){
+            System.out.println(String.format("ERROR: %s is not authorized to download  %s", clientConfiguration.getUserName(), url));
+        }
+
+        if (response.getStatusLine().getStatusCode() == 401) {
+            this.token = null;
+            authenticateIfRequired();
+            response = makeHeadRequest(url);
+        }
+
+        if(response.getStatusLine().getStatusCode() == 428){
+
+            String reason = response.getStatusLine().getReasonPhrase();
+
+            if(reason.isEmpty()){
+                reason = "ERROR: You need to first login to CZDS web interface and accept new Terms & Conditions";
+            }
+
+            throw new AuthenticationException(reason);
+        }
+
+        if (response.getStatusLine().getStatusCode() == 503) {
+            System.out.println("response = " + response + " ERROR: Service Unavailable");
+        }
+
+        return response;
+
     }
 
     protected HttpResponse makeGetRequest(String url) throws IOException, AuthenticationException {
