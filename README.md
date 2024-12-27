@@ -10,9 +10,9 @@ There is also an example provided in Python. It can be found in [this repo](http
 Environment
 -----------
 
-Language: [Java 11](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+Language: Java 17
 
-Build Tool: [Maven 3.6+](https://maven.apache.org/download.cgi)
+Build Tool: Maven 3.8+
 
 Configurations
 --------------

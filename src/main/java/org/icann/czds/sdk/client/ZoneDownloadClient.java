@@ -1,12 +1,12 @@
 package org.icann.czds.sdk.client;
 
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.Header;
-import org.apache.http.HttpResponse;
+import org.apache.hc.client5.http.impl.classic.CloseableHttpResponse;
+import org.apache.hc.core5.http.Header;
+import org.apache.hc.core5.http.HttpResponse;
 import org.icann.czds.sdk.model.ApplicationConstants;
 import org.icann.czds.sdk.model.AuthenticationException;
 import org.icann.czds.sdk.model.ClientConfiguration;
-
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
@@ -52,27 +52,23 @@ public class ZoneDownloadClient extends CzdsClient {
      */
     public List<File> downloadApprovedZoneFiles() throws AuthenticationException, IOException {
         List<File> zoneFiles = new ArrayList<>();
-        try {
-            authenticateIfRequired();
-            String linksURL = getBackendApiUrl() + "downloads/" + ApplicationConstants.CZDS_LINKS;
-            HttpResponse response = makeGetRequest(linksURL);
+        authenticateIfRequired();
+        String linksURL = getBackendApiUrl() + "downloads/" + ApplicationConstants.CZDS_LINKS;
+        CloseableHttpResponse response = makeGetRequest(linksURL);
 
-            Set<String> listOfDownloadURLs = getDownloadURLs(response);
-            long start = System.currentTimeMillis();
-            for (String url : listOfDownloadURLs) {
-                try {
-                    File savedZoneFile = getZoneFile(url);
-                    zoneFiles.add(savedZoneFile);
-                } catch (Exception e) {
-                    System.out.println(String.format("ERROR: failed to download zone file for zone - %s - with error %s", url, e.getMessage()));
-                }
+        Set<String> listOfDownloadURLs = getDownloadURLs(response);
+        long start = System.currentTimeMillis();
+        for (String url : listOfDownloadURLs) {
+            try {
+                File savedZoneFile = getZoneFile(url);
+                zoneFiles.add(savedZoneFile);
+            } catch (Exception e) {
+                System.out.printf("ERROR: failed to download zone file for zone - %s - with error %s%n", url, e.getMessage());
             }
-            long end = System.currentTimeMillis();
-            System.out.println("download " + zoneFiles.size() + " zone files took " + (end - start)/1000 + " seconds");
-            return zoneFiles;
-        } catch (AuthenticationException | IOException e) {
-            throw e;
         }
+        long end = System.currentTimeMillis();
+        System.out.println("download " + zoneFiles.size() + " zone files took " + (end - start)/1000 + " seconds");
+        return zoneFiles;
     }
 
     /*
@@ -81,13 +77,9 @@ public class ZoneDownloadClient extends CzdsClient {
      Throws AuthenticationException if not authorized to download that particular tld.
     */
     public File downloadZoneFile(String zone) throws AuthenticationException, IOException {
-        try {
-            authenticateIfRequired();
-            String downloadURL = getCzdsDownloadUrl() + zone.trim() + ApplicationConstants.CZDS_ZONE;
-            return getZoneFile(downloadURL);
-        } catch (AuthenticationException | IOException e) {
-            throw e;
-        }
+        authenticateIfRequired();
+        String downloadURL = getCzdsDownloadUrl() + zone.trim() + ApplicationConstants.CZDS_ZONE;
+        return getZoneFile(downloadURL);
     }
 
 
@@ -100,7 +92,7 @@ public class ZoneDownloadClient extends CzdsClient {
         System.out.println("head request for zone file " + downloadURL + " took " + (headEnd - headStart) + " millisecond");
         System.out.println("Downloading  zone file from " + downloadURL);
         long start = System.currentTimeMillis();
-        HttpResponse response = makeGetRequest(downloadURL);
+        CloseableHttpResponse response = makeGetRequest(downloadURL);
         File file = createFileLocally(response.getEntity().getContent(), getFileName(response));
         long end = System.currentTimeMillis();
         System.out.println("download zone file from " + downloadURL + " took " + (end - start) + " millisecond");
@@ -108,7 +100,7 @@ public class ZoneDownloadClient extends CzdsClient {
     }
 
     @SuppressWarnings("unchecked")
-    private Set<String> getDownloadURLs(HttpResponse response) throws IOException, AuthenticationException {
+    private Set<String> getDownloadURLs(CloseableHttpResponse response) throws IOException, AuthenticationException {
         if (response.getEntity().getContentLength() == 0) {
             return new HashSet<>();
         }
@@ -140,7 +132,6 @@ public class ZoneDownloadClient extends CzdsClient {
         if (headers.length == 0) {
             throw new AuthenticationException("ERROR: Either you are not authorized to download zone file of tld or tld does not exist");
         }
-        String fileName = headers[0].getValue().substring(headers[0].getValue().indexOf(preFileName) + preFileName.length());
-        return fileName;
+        return headers[0].getValue().substring(headers[0].getValue().indexOf(preFileName) + preFileName.length());
     }
 }
