@@ -38,7 +38,7 @@ public class CzdsClient {
     }
 
     protected String getAuthenticationUrl() {
-        return StringUtils.appendIfMissing(clientConfiguration.getAuthenticationBaseUrl(), "/") + "api/authenticate/";
+        return StringUtils.appendIfMissing(clientConfiguration.getAuthenticationBaseUrl(), "/") + "api/authenticate";
     }
 
     protected CloseableHttpResponse makeHeadRequest(String url) throws IOException, AuthenticationException {
